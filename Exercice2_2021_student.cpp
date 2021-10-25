@@ -90,7 +90,8 @@ private:
     {
       // TODO calculer l'energie mecanique      
       double energyMecanique=0.0;
-      energyMecanique = 0.5*mass*norm2(v) + mass*g*x[2];
+      energyMecanique = 0.5*mass*v[1]*v[1]+ 0.5*mass*v[0]*v[0]+ mass*g*x[1];
+        //energyMecanique = 0.5*mass* norm2(v)+ mass*g*x[1];
       *outputFile << t << " " << x[0] << " " << x[1] << " " \
       << v[0] << " " << v[1] << " " \
       << energyMecanique << endl; // write output on file
@@ -121,10 +122,9 @@ protected:
   */
   void acceleration(valarray<double>& a) const
   {
-    // calcul de l'acceleration 
-    
-    a[1] = Omega * v[2];
-    a[2] = -g -Omega *v[1];
+    // calcul de l'acceleration
+    a[0] = Omega * v[1];
+    a[1] = -g-Omega *v[0];
   }
 
 public:
@@ -155,7 +155,7 @@ public:
 
     dt = tfin / nsteps; // calculer le time step
     // TODO calculer la vitesse angulaire de la trajectoire
-    Omega = mu*rho*R*R*R*omega0/mass;
+    Omega = (mu*rho*R*R*R*omega0)/mass;
 
     // Ouverture du fichier de sortie
     outputFile = new ofstream(configFile.get<string>("output","output.out").c_str()); 
