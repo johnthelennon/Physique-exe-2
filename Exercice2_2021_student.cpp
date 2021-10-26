@@ -91,7 +91,6 @@ private:
       // TODO calculer l'energie mecanique      
       double energyMecanique=0.0;
       energyMecanique = 0.5*mass*v[1]*v[1]+ 0.5*mass*v[0]*v[0]+ mass*g*x[1];
-        //energyMecanique = 0.5*mass* norm2(v)+ mass*g*x[1];
       *outputFile << t << " " << x[0] << " " << x[1] << " " \
       << v[0] << " " << v[1] << " " \
       << energyMecanique << endl; // write output on file
@@ -123,8 +122,8 @@ protected:
   void acceleration(valarray<double>& a) const
   {
     // calcul de l'acceleration
-    a[0] = Omega * v[1];
-    a[1] = -g-Omega *v[0];
+    a[0] =Omega * v[1];
+    a[1] =-g-Omega*v[0];
   }
 
 public:
@@ -202,7 +201,7 @@ public:
   void step()
   {
     valarray<double> a=valarray<double>(0.e0,v.size()); // definir l'acceleration
-    acceleration(a); // mis a jour de l'acceleration
+      acceleration(a);// mis a jour de l'acceleration
 
     x += v*dt; // mise a jour de la position
     v += a*dt; // mise a jour de la vitesse
@@ -233,8 +232,7 @@ public:
    valarray<double> kx1= dt * v;
     valarray<double> kv1 =dt* a;
     v += 0.5*kv1;
-    x += kv1*0.5;
-    t+= dt*0.5;
+    x += kx1*0.5;
     acceleration(a);
     valarray<double> kx2 = dt*v;
     valarray<double> kv2 = dt*a;
