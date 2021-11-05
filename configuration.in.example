@@ -1,0 +1,12 @@
+tFin = 1.0
+r = 0
+Omega = 0.0
+kappa = 0.0
+m = 1.0
+g = 9.81
+L = 1.0
+theta0 = 1.0
+thetadot0 = 0.0
+nsteps = 10.0
+output = output.out
+sampling = 1
