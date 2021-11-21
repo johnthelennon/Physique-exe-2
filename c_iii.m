@@ -1,4 +1,5 @@
-%caos r = 0.14 omega0=0/1e-10 tfin 100s   κ = 0.01, theta_point_0= 0
+%caos r = 0.14 omega0=0/1e-10 tfin 100s   κ = 0.01, theta_point_0= 0 
+%nsteps = 1000000
 data = load('c_3_caos_theta=0.out');
 t = data(:,1);
 theta1= data(:,2);
