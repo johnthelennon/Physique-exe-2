@@ -12,8 +12,8 @@ private:
     double m_L, m_T, m_A;
     double G=6.67430* pow(10,-11);
     double d=160;
-    double R_T=6378.1;
-    double D=384748; //distance terre lune
+    double R_T=6378.1* pow(10,3);
+    double D=384748*pow(10,3); //distance terre lune
     bool adaptatif;
     valarray<double> M=valarray<double>(0.0,3);
     double Omega;
@@ -26,13 +26,13 @@ private:
 
     void printOut(bool force) {
         if ((!force && last >= sampling) || (force && last != 1)) {
-            double emec = 0.0;
+            double emec =  0.5*M[0]*(y[0][2]*y[0][2] + y[0][3]*y[0][3]) - G*M[0]*M[2]/(sqrt((y[0][0]-y[2][0])*(y[0][0]-y[2][0]) + (y[0][1]-y[2][1])*(y[0][1]-y[2][1])));
             *outputFile << t << " ";
             for (unsigned int i(0); i < 4; ++i) {
                 for (unsigned int j(0); j < 3; ++j) {
                     cout << y[i][j] << " ";
                 }
-                cout << endl;
+                cout << emec << endl;
 
                 last = 1;
             }
@@ -41,11 +41,26 @@ private:
         }
     }
 
-    valarray<valarray<double>> acceleration(const double theta_, const double thetadot_, const double t_) ;
+    valarray<valarray<double>> acceleration(valarray<valarray<double>> const& y_) ;
 
-    void step(valarray<valarray<double>> const& y, double const& dt);
 
+    void step(double a){
+
+        valarray<valarray<double>> k1 = mult(acceleration(y),a);
+        valarray<valarray<double>> k2= mult(acceleration(y + mult(k1,1.0/2.0)),2);
+        valarray<valarray<double>> k3= mult(acceleration(y+mult(k2,1/2.0)),a);
+        valarray<valarray<double>> k4 = mult(acceleration(y+k3),a);
+        y += mult((k1 + mult(k2,2) + mult(k3,2) +k4),(1.0/6.0));
+    };
     double norm2(valarray<valarray<double>>y) ;
+
+    valarray<valarray<double>> mult( valarray<valarray<double>> const& v, double a){
+        valarray<valarray<double>> r = v;
+        r[0] *= a;
+        r[1] *= a;
+        r[2] *= a;
+        return r;
+    }
 public :
     Exercice4(int argc, char* argv[])
     {
@@ -111,10 +126,10 @@ public :
 
                     j+=1;
                     dt = min(tFin-t, dt); //Pour finir pile au bon temps
-                     step(y, dt);
+                     step( dt);
                      valarray<valarray<double >>y_temp=y;
-                     step(y, dt/2.);
-                     step(y, dt/2.);
+                     step(dt/2.0);
+                     step( dt/2.0);
                     d = norm2(y-y_temp); //ecrire fonction norme
                     if (d < eps) { //Vérification de la précision : assez précis
                         t += dt;
@@ -123,10 +138,10 @@ public :
                         while(d>eps) {
                             dt = fact*dt*pow(eps/d, 1./(n+1)); // Formule du cours
                             dt = min(tFin-t, dt);
-                            step(y, dt);
+                            step( dt);
                             valarray<valarray<double >>y_temp=y;
-                            step(y, dt/2.);
-                            step(y, dt/2.);
+                            step(dt/2.0);
+                            step(dt/2.0);
                             d = norm2(y-y_temp);
                         }
                         t+= dt;
@@ -141,7 +156,7 @@ public :
                     dt = min(tFin-t, dt);
                     t+=dt;
                     j+=1;
-                    step(y, dt);
+                    step(dt);
                     printOut(false);
                 }
             }
@@ -153,17 +168,38 @@ public :
 
 
 
-valarray<valarray<double>> Exercice4::acceleration(const double theta_, const double thetadot_, const double t_) {
-    return valarray<valarray<double>>();
+valarray<valarray<double>> Exercice4::acceleration(valarray<valarray<double>> const& y_) {
+    valarray<valarray<double>> a = valarray<valarray<double>>(valarray<double>(0.0, 4),3);
+    int m_i;
+    int m_j;
+    for(int i = 0; i<3; ++i){
+        if(i==0){
+            m_i = 1;
+            m_j = 2;}
+        if (i == 1){
+            m_i = 0;
+            m_j = 2;}
+        if (i==2){
+            m_i = 1;
+            m_j = 2;}
+        for(int k =0; k<4; ++k){
+            if(k<2){ a[i][k] = y_[i][k+2];
+            }else{a[i][k] = -G*M[m_i]*(y_[i][k-2]-y_[m_i][k-2])/(pow(sqrt((y_[i][0]-y_[m_i][0])*(y_[i][0]-y_[m_i][0]) + (y_[i][1]-y_[m_i][1])*(y_[i][1]-y_[m_i][1])),3))  - G*M[m_j]*(y_[i][k-2]-y_[m_j][k-2])/(pow(sqrt((y_[i][0]-y_[m_j][0])*(y_[i][0]-y_[m_j][0]) + (y_[i][1]-y_[m_j][1])*(y_[i][1]-y_[m_j][1])),3));
+
+            }
+
+        }
+    }
+    return a;
 }
 
-void Exercice4::step(const valarray<valarray<double>> &y, const double &dt) {
 
-}
+
 
 double Exercice4::norm2(valarray<valarray<double>> y) {
     return 0;
 }
+
 
 int main(int argc, char* argv[])
 {
