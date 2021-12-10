@@ -198,7 +198,14 @@ valarray<valarray<double>> Exercice4::acceleration(valarray<valarray<double>> co
 
 
 double Exercice4::norm2(valarray<valarray<double>> y) {
-    return 0;
+	double a = 0;
+	for(size_t i= 0; i<3; ++i){
+		for(size_t j = 0 ; j< 2; ++j){
+			a += y[i][j]*y[i][j];
+			}
+		
+		}
+    return a;
 }
 
 
