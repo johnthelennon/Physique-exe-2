@@ -9,11 +9,7 @@ using namespace std;
 class Exercice4 {
 private:
     double t, dt, tFin, eps;
-    double m_L, m_T, m_A;
-    double G=6.67430* pow(10,-11);
-    double d=160;
-    double R_T=6378.1* pow(10,3);
-    double D=384748*pow(10,3); //distance terre lune
+    double G = 6.67415e-11;
     bool adaptatif;
     valarray<double> M=valarray<double>(0.0,3);
     double Omega;
@@ -33,7 +29,6 @@ private:
                     *outputFile << y[i][j] << " ";
                 }
 
-
                 last = 1;
             }
             *outputFile << emec << endl;
@@ -45,15 +40,15 @@ private:
     valarray<valarray<double>> acceleration(valarray<valarray<double>> const& y_) ;
 
 
-    void step(double a){
+    void step(double const& a){
 
         valarray<valarray<double>> k1 = mult(acceleration(y),a);
-        valarray<valarray<double>> k2= mult(acceleration(y + mult(k1,1.0/2.0)),a);
-        valarray<valarray<double>> k3= mult(acceleration(y+mult(k2,1.0/2.0)),a);
+        valarray<valarray<double>> k2= mult(acceleration(y + mult(k1,0.5)),a);
+        valarray<valarray<double>> k3= mult(acceleration(y+mult(k2,0.5)),a);
         valarray<valarray<double>> k4 = mult(acceleration(y+k3),a);
         y += mult((k1 + mult(k2,2.0) + mult(k3,2.0) +k4),(1.0/6.0));
     };
-    double norm2(valarray<valarray<double>>y) ;
+    double norm2(valarray<valarray<double>>y1,valarray<valarray<double>>y2) ;
 
     valarray<valarray<double>> mult( valarray<valarray<double>> const& v, double a){
         valarray<valarray<double>> r = v;
@@ -118,9 +113,8 @@ public :
             printOut(true); // ecrire premier pas de temps
 
             if(adaptatif) {
-                valarray<double> x1(0.e0, 12);
-                valarray<double> x2(0.e0, 12);
-                int n = 4; //ordre du schéma
+
+
                 double fact = 0.99;
                 double d = 0.0;
                 while(t<tFin) {
@@ -131,19 +125,19 @@ public :
                      valarray<valarray<double >>y_temp=y;
                      step(dt/2.0);
                      step( dt/2.0);
-                    d = norm2(y-y_temp); //ecrire fonction norme
+                    d = norm2(y,y_temp); //ecrire fonction norme
                     if (d < eps) { //Vérification de la précision : assez précis
                         t += dt;
-                        dt = dt*pow(eps/d, 1./(n+1));
+                        dt = dt*pow(eps/d, 1.0/(4.0));
                     } else { // Pas assez précis : itérer jusqu'à ce que ça le soit
                         while(d>eps) {
-                            dt = fact*dt*pow(eps/d, 1./(n+1)); // Formule du cours
+                            dt = fact*dt*pow(eps/d, 1./4.0); // Formule du cours
                             dt = min(tFin-t, dt);
                             step( dt);
                             valarray<valarray<double >>y_temp=y;
                             step(dt/2.0);
                             step(dt/2.0);
-                            d = norm2(y-y_temp);
+                            d = norm2(y,y_temp);
                         }
                         t+= dt;
                     }
@@ -152,11 +146,11 @@ public :
 
                 }
             } else {	// Dans le cas pas de temps fixe.
-                dt = tFin/nsteps;
-                while(t<tFin) {
+                while(t<tFin-0.5*dt) {
+                    j+=1;
                     dt = min(tFin-t, dt);
                     t+=dt;
-                    j+=1;
+
                     step(dt);
                     printOut(false);
                 }
@@ -197,15 +191,17 @@ valarray<valarray<double>> Exercice4::acceleration(valarray<valarray<double>> co
 
 
 
-double Exercice4::norm2(valarray<valarray<double>> y) {
-	double a = 0;
-	for(size_t i= 0; i<3; ++i){
-		for(size_t j = 0 ; j< 2; ++j){
-			a += y[i][j]*y[i][j];
-			}
-		
-		}
-    return a;
+double Exercice4::norm2(valarray<valarray<double>> y1,valarray<valarray<double>> y2) {
+    valarray<double> a = valarray<double>(0.0,3);
+    double b;
+    for(size_t i= 0; i<3; ++i){
+        for(size_t j = 0 ; j< 4; ++j){
+            a[i] += (y1[i][j]-y2[i][j])*(y1[i][j]-y2[i][j]);
+        }
+
+    }
+    b=a[0]+a[1]+a[2];
+    return b;
 }
 
 
